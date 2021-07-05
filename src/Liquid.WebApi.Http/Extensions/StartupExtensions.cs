@@ -1,11 +1,15 @@
 ﻿using Liquid.Core.Configuration;
 using Liquid.Core.Context;
+using Liquid.Core.DependencyInjection;
 using Liquid.Core.Localization;
 using Liquid.Core.Telemetry;
+using Liquid.Domain.Extensions;
 using Liquid.WebApi.Http.Factories;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 
 namespace Liquid.WebApi.Http.Extensions
 {
@@ -21,6 +25,7 @@ namespace Liquid.WebApi.Http.Extensions
         /// <param name="services">The services.</param>
         public static IServiceCollection ConfigureLiquidHttp(this IServiceCollection services)
         {
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddHttpClient();
             services.AddLocalizationService();
 
@@ -30,6 +35,20 @@ namespace Liquid.WebApi.Http.Extensions
 
             services.AddScoped<ILightTelemetry, LightTelemetry>();
             services.AddSingleton<ILightTelemetryFactory, WebApiLightTelemetryFactory>();
+            return services;
+        }
+
+        /// <summary>
+        /// Adds the web API services.
+        /// </summary>
+        /// <param name="services">The services.</param>
+        /// <param name="assemblies">The assemblies.</param>
+        /// <returns></returns>
+        public static IServiceCollection ConfigureLiquidHttp(this IServiceCollection services, params Assembly[] assemblies)
+        {
+            ConfigureLiquidHttp(services);
+            services.AddAutoMapper(assemblies);
+            services.AddDomainRequestHandlers(assemblies);
             return services;
         }
 

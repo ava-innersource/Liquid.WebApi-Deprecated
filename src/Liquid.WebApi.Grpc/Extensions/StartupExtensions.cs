@@ -1,14 +1,18 @@
 ﻿using Grpc.AspNetCore.Server;
 using Liquid.Core.Configuration;
 using Liquid.Core.Context;
+using Liquid.Core.DependencyInjection;
 using Liquid.Core.Localization;
 using Liquid.Core.Telemetry;
+using Liquid.Domain.Extensions;
 using Liquid.WebApi.Grpc.Configuration;
 using Liquid.WebApi.Grpc.Factories;
 using Liquid.WebApi.Grpc.Interceptors;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 
 namespace Liquid.WebApi.Grpc.Extensions
 {
@@ -27,6 +31,7 @@ namespace Liquid.WebApi.Grpc.Extensions
         public static IServiceCollection ConfigureLiquidGrpc(this IServiceCollection services)
         {
             _services = services;
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddHttpClient();
             services.AddLocalizationService();
 
@@ -37,6 +42,20 @@ namespace Liquid.WebApi.Grpc.Extensions
             services.AddScoped<ILightTelemetry, LightTelemetry>();
             services.AddScoped<ILightGrpcService, LightGrpcService>();
             services.AddSingleton<ILightTelemetryFactory, GrpcLightTelemetryFactory>();
+            return services;
+        }
+
+        /// <summary>
+        /// Adds the web API services.
+        /// </summary>
+        /// <param name="services">The services.</param>
+        /// <param name="assemblies">The assemblies.</param>
+        /// <returns></returns>
+        public static IServiceCollection ConfigureLiquidHttp(this IServiceCollection services, params Assembly[] assemblies)
+        {
+            ConfigureLiquidHttp(services);
+            services.AddAutoMapper(assemblies);
+            services.AddDomainRequestHandlers(assemblies);
             return services;
         }
 
