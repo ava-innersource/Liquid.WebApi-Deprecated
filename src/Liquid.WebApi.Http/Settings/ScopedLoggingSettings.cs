@@ -1,35 +1,33 @@
 ﻿using Liquid.Core.Attributes;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 
 namespace Liquid.WebApi.Http.Settings
 {
     /// <summary>
-    /// Context key settings.
+    /// Scoped logging setting properties.
     /// </summary>
     [ExcludeFromCodeCoverage]
-    [LiquidSectionName("Liquid:HttpScopedContext")]
-    public class ScopedContextSettings
+    [LiquidSectionName("Liquid:HttpScopedLogging")]
+    public class ScopedLoggingSettings
     {
         /// <summary>
-        /// List of keys that should be created on context.
+        /// List of keys that should be created on logger scope.
         /// </summary>
-        public List<ContextKey> Keys { get; set; } = new List<ContextKey>();
-
-        /// <summary>
-        /// Indicates if the current culture must be included on context keys.
-        /// </summary>
-        public bool Culture { get; set; } = false;
+        public List<ScopedKey> Keys { get; set; } = new List<ScopedKey>();
 
     }
+
     /// <summary>
-    /// Definition of context key type.
+    /// Definition of scoped key type.
     /// </summary>
     [ExcludeFromCodeCoverage]
-    public class ContextKey
+    public class ScopedKey
     {
         /// <summary>
-        /// Name of the context key.
+        /// Name of the scoped key.
         /// </summary>
         public string KeyName { get; set; }
 
