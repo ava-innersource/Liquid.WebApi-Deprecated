@@ -1,12 +1,14 @@
-﻿using Newtonsoft.Json;
+﻿using Liquid.Core.Attributes;
+using Newtonsoft.Json;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Liquid.WebApi.Http.Configuration
+namespace Liquid.WebApi.Http.Settings
 {
     /// <summary>
     /// Swagger Configuration Settings Class.
     /// </summary>
     [ExcludeFromCodeCoverage]
+    [LiquidSectionName("liquid:swagger")]
     public class SwaggerSettings
     {
         /// <summary>

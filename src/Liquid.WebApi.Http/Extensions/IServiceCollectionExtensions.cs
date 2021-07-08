@@ -1,23 +1,43 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using Liquid.Core.Configuration;
-using Liquid.Core.Exceptions;
+﻿using Liquid.Core.Exceptions;
+using Liquid.Core.Extensions;
+using Liquid.Core.Implementations;
+using Liquid.Core.Interfaces;
 using Liquid.Core.Utils;
-using Liquid.WebApi.Http.Configuration;
+using Liquid.Domain.Extensions;
 using Liquid.WebApi.Http.Filters.Swagger;
-using Microsoft.AspNetCore.Builder;
+using Liquid.WebApi.Http.Settings;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Reflection;
 
 namespace Liquid.WebApi.Http.Extensions
 {
     /// <summary>
-    /// Adds Swagger to your application.
+    /// Startup extension methods. Used to configure the startup application.
     /// </summary>
     [ExcludeFromCodeCoverage]
-    public static class SwaggerExtensions
+    public static class IServiceCollectionExtensions
     {
+        /// <summary>
+        /// Adds the web API services.
+        /// </summary>
+        /// <param name="services">The services.</param>
+        /// <param name="assemblies"></param>
+        public static IServiceCollection AddLiquidHttp(this IServiceCollection services, params Assembly[] assemblies)
+        {
+            services.AddScoped<ILiquidContext, LiquidContext>();
+
+            services.AddLiquidConfiguration();
+            services.AddAutoMapper(assemblies);
+            services.AddLiquidHandlers(true, true, assemblies);
+
+            services.AddLiquidSwagger();
+            return services;
+        }
+
         /// <summary>
         /// Adds the liquid swagger.
         /// </summary>
@@ -27,8 +47,8 @@ namespace Liquid.WebApi.Http.Extensions
         {
             var serviceProvider = services.BuildServiceProvider();
 
-            var configuration = serviceProvider.GetService<ILightConfiguration<SwaggerSettings>>();
-            if (configuration?.Settings == null) throw new LightException("'swagger' settings does not exist in appsettings.json file. Please check the file.");
+            var configuration = serviceProvider.GetService<ILiquidConfiguration<SwaggerSettings>>();
+            if (configuration?.Settings == null) throw new LiquidException("'swagger' settings does not exist in appsettings.json file. Please check the file.");
 
             var swaggerSettings = configuration.Settings;
             services.AddSwaggerGen(options =>
@@ -43,29 +63,12 @@ namespace Liquid.WebApi.Http.Extensions
                 options.OperationFilter<AddHeaderParameterFilter>();
                 options.OperationFilter<DefaultResponseFilter>();
                 options.OperationFilter<OverloadMethodsSameVerb>();
-                
+
                 Directory.GetFiles(AppContext.BaseDirectory, "*.xml").Each(file => options.IncludeXmlComments(file));
 
                 options.CustomSchemaIds(x => x.FullName);
             });
             return services;
-        }
-
-        /// <summary>
-        /// Uses the liquid swagger.
-        /// </summary>
-        /// <param name="app">The application.</param>
-        /// <returns></returns>
-        public static IApplicationBuilder UseLiquidSwagger(this IApplicationBuilder app)
-        {
-            var configuration = app.ApplicationServices.GetService<ILightConfiguration<SwaggerSettings>>();
-
-            var swaggerSettings = configuration.Settings;
-            app.UseSwagger().UseSwaggerUI(options =>
-            {
-                options.SwaggerEndpoint(swaggerSettings.SwaggerEndpoint.Url, swaggerSettings.SwaggerEndpoint.Name);
-            });
-            return app;
         }
     }
 }
